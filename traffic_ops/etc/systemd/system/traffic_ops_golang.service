@@ -1,0 +1,14 @@
+[Unit]
+Description=Traffic Ops (golang)
+
+[Service]
+Type=simple
+User=trafops
+Group=trafops
+ExecStart=/opt/traffic_ops/app/bin/traffic_ops_golang "-cfg" "conf/traffic_ops_golang.config"
+Restart=always
+RestartSec=5
+WorkingDirectory=/opt/traffic_ops/app
+
+[Install]
+WantedBy=multi-user.target
