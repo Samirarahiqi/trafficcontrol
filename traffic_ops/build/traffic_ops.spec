@@ -34,7 +34,7 @@ Packager:         daniel_kirkwood at Cable dot Comcast dot com
 AutoReqProv:      no
 Requires:         cpanminus, expat-devel, gcc-c++, libcurl, libpcap-devel, mkisofs, tar
 Requires:         openssl-devel, perl, perl-core, perl-DBD-Pg, perl-DBI, perl-Digest-SHA1
-Requires:         libidn-devel, libcurl-devel, libcap
+Requires:         libidn-devel, libcurl-devel, libcap, redhat-lsb-core
 Requires:         postgresql96 >= 9.6.2 , postgresql96-devel >= 9.6.2
 Requires:         perl-JSON, perl-libwww-perl, perl-Test-CPAN-Meta, perl-WWW-Curl, perl-TermReadKey, perl-Crypt-ScryptKDF
 Requires(pre):    /usr/sbin/useradd, /usr/bin/getent
