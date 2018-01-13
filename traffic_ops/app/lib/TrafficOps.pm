@@ -33,6 +33,7 @@ use Mojolicious::Plugin::Authentication;
 use Mojolicious::Plugin::AccessLog;
 use Mojolicious::Plugin::FormFields;
 use Mojolicious::Plugin::Mail;
+use Mojolicious::Plugin::Prometheus;
 use Mojolicious::Static;
 use Net::LDAP;
 use Data::GUID;
@@ -363,6 +364,8 @@ sub setup_mojo_plugins {
 	#FormFields
 	$self->plugin('FormFields');
 
+        #Prometheus
+        $self->plugin('Prometheus');
 }
 
 sub load_password_blacklist {
