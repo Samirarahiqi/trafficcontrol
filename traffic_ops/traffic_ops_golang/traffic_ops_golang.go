@@ -39,10 +39,11 @@ import (
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/config"
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/plugin"
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/routing"
+	"github.com/prometheus/client_golang/prometheus"
+	"golang.org/x/sys/unix"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"golang.org/x/sys/unix"
 )
 
 // set the version at build time: `go build -X "main.version=..."`
@@ -50,6 +51,14 @@ var version = "development"
 
 func init() {
 	about.SetAbout(version)
+}
+
+var (
+	summaryVec *prometheus.SummaryVec
+)
+
+func init() {
+	summaryVec = prometheus.NewSummaryVec()
 }
 
 func main() {
