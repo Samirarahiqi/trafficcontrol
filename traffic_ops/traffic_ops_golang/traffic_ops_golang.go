@@ -39,11 +39,11 @@ import (
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/config"
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/plugin"
 	"github.com/apache/trafficcontrol/traffic_ops/traffic_ops_golang/routing"
-	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/sys/unix"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // set the version at build time: `go build -X "main.version=..."`
@@ -54,11 +54,19 @@ func init() {
 }
 
 var (
-	summaryVec *prometheus.SummaryVec
+	apiDurations = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Name:       "api_durations_seconds",
+			Help:       "API duration distributions.",
+			Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+		},
+		[]string{"service"},
+	)
 )
 
 func init() {
-	summaryVec = prometheus.NewSummaryVec()
+	// Register the summary and the histogram with Prometheus's default registry.
+	prometheus.MustRegister(apiDurations)
 }
 
 func main() {
