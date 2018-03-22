@@ -50,12 +50,6 @@ func OpenConnection(cfg *config.Config) (*sql.DB, error) {
 func SetupTestData(cfg *config.Config, db *sql.DB) error {
 	var err error
 
-	err = SetupTenants(cfg, db)
-	if err != nil {
-		fmt.Printf("\nError setting up tenants %s - %s, %v\n", cfg.TrafficOps.URL, cfg.TrafficOps.User, err)
-		os.Exit(1)
-	}
-
 	err = SetupCDNs(cfg, db)
 	if err != nil {
 		fmt.Printf("\nError setting up cdns %s - %s, %v\n", cfg.TrafficOps.URL, cfg.TrafficOps.User, err)
@@ -229,22 +223,6 @@ INSERT INTO tm_user (username, local_passwd, confirm_local_passwd, role, tenant_
 INSERT INTO tm_user (username, local_passwd, confirm_local_passwd, role, tenant_id) VALUES ('user3','` + encryptedPassword + `','` + encryptedPassword + `', 3, 4);
 `
 	err = execSQL(cfg, db, sqlStmt, "tm_user")
-	if err != nil {
-		return fmt.Errorf("exec failed %v", err)
-	}
-	return nil
-}
-
-// SetupTenants ...
-func SetupTenants(cfg *config.Config, db *sql.DB) error {
-
-	sqlStmt := `
-INSERT INTO tenant (id, name, active, parent_id, last_updated) VALUES (1, 'root', true, null, '2018-01-19 19:01:21.327262');
-INSERT INTO tenant (id, name, active, parent_id, last_updated) VALUES (2, 'grandparent tenant', true, 1, '2018-01-19 19:01:21.327262');
-INSERT INTO tenant (id, name, active, parent_id, last_updated) VALUES (3, 'parent tenant', true, 2, '2018-01-19 19:01:21.327262');
-INSERT INTO tenant (id, name, active, parent_id, last_updated) VALUES (4, 'child tenant', true, 3, '2018-01-19 19:01:21.327262');
-`
-	err := execSQL(cfg, db, sqlStmt, "tenant")
 	if err != nil {
 		return fmt.Errorf("exec failed %v", err)
 	}

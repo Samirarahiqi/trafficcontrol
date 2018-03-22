@@ -33,6 +33,6 @@ type TrafficControl struct {
 	PhysLocations           []tcapi.PhysLocation           `json:"physLocations"`
 	Regions                 []tcapi.Region                 `json:"regions"`
 	Statuses                []tcapi.Status                 `json:"statuses"`
-	Tenants                 []tcapi.Tenant                 `json:"tenants"`
+	Tenants                 []v13.Tenant                   `json:"tenants"`
 	Types                   []tcapi.Type                   `json:"types"`
 }
