@@ -26,10 +26,12 @@ import (
 
 	"github.com/apache/incubator-trafficcontrol/lib/go-log"
 	"github.com/apache/incubator-trafficcontrol/lib/go-tc"
+	"github.com/apache/incubator-trafficcontrol/lib/go-tc/v13"
 	"github.com/apache/incubator-trafficcontrol/traffic_ops/traffic_ops_golang/auth"
 	"github.com/jmoiron/sqlx"
 )
 
+type TOTenant v13.TenantNullable
 type Tenant struct {
 	ID       int
 	Name     string
@@ -88,31 +90,27 @@ func HasTenant(user auth.CurrentUser, XMLID string, db *sqlx.DB) (bool, error, t
 // NOTE: This method does not use the use_tenancy parameter and if this method is being used
 // to control tenancy the parameter must be checked. The method IsResourceAuthorizedToUser checks the use_tenancy parameter
 // and should be used for this purpose in most cases.
-func GetUserTenantList(user auth.CurrentUser, db *sqlx.DB) ([]Tenant, error) {
+func GetUserTenantList(user auth.CurrentUser, db *sqlx.DB) ([]TOTenant, error) {
 	query := `WITH RECURSIVE q AS (SELECT id, name, active, parent_id FROM tenant WHERE id = $1
 	UNION SELECT t.id, t.name, t.active, t.parent_id  FROM tenant t JOIN q ON q.id = t.parent_id)
 	SELECT id, name, active, parent_id FROM q;`
 
 	log.Debugln("\nQuery: ", query)
 
-	var tenantID int
-	var name string
-	var active bool
-	var parentID int
-
-	rows, err := db.Query(query, user.TenantID)
+	rows, err := db.Queryx(query, user.TenantID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	tenants := []Tenant{}
+	tenants := []TOTenant{}
 
 	for rows.Next() {
-		if err := rows.Scan(&tenantID, &name, &active, &parentID); err != nil {
+		var t TOTenant
+		if err := rows.StructScan(&t); err != nil {
 			return nil, err
 		}
-		tenants = append(tenants, Tenant{ID: tenantID, Name: name, Active: active, ParentID: parentID})
+		tenants = append(tenants, t)
 	}
 
 	return tenants, nil

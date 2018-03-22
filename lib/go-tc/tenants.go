@@ -21,7 +21,7 @@ type GetTenantsResponse struct {
 }
 
 // TenantResponse ...
-type TenantResponse struct {
+type TenantsResponse struct {
 	Response Tenant        `json:"response"`
 	Alerts   []TenantAlert `json:"alerts"`
 }
