@@ -46,6 +46,7 @@ import (
 	"github.com/apache/incubator-trafficcontrol/traffic_ops/traffic_ops_golang/status"
 	"github.com/apache/incubator-trafficcontrol/traffic_ops/traffic_ops_golang/systeminfo"
 	"github.com/apache/incubator-trafficcontrol/traffic_ops/traffic_ops_golang/types"
+	"github.com/apache/incubator-trafficcontrol/traffic_ops/traffic_ops_golang/user"
 
 	"github.com/basho/riak-go-client"
 )
@@ -190,6 +191,13 @@ func Routes(d ServerData) ([]Route, http.Handler, error) {
 
 		//System
 		{1.2, http.MethodGet, `system/info/?(\.json)?$`, systeminfo.Handler(d.DB), auth.PrivLevelReadOnly, Authenticated, nil},
+
+		//Users
+		{1.3, http.MethodGet, `users/?(\.json)?$`, api.ReadHandler(user.GetRefType(), d.DB), auth.PrivLevelReadOnly, Authenticated, nil},
+		{1.3, http.MethodGet, `users/{id}$`, api.ReadHandler(user.GetRefType(), d.DB), auth.PrivLevelReadOnly, Authenticated, nil},
+		{1.3, http.MethodPut, `users/{id}$`, api.UpdateHandler(user.GetRefType(), d.DB), auth.PrivLevelOperations, Authenticated, nil},
+		{1.3, http.MethodPost, `users/?$`, api.CreateHandler(user.GetRefType(), d.DB), auth.PrivLevelOperations, Authenticated, nil},
+		{1.3, http.MethodDelete, `users/{id}$`, api.DeleteHandler(user.GetRefType(), d.DB), auth.PrivLevelOperations, Authenticated, nil},
 	}
 	return routes, proxyHandler, nil
 }

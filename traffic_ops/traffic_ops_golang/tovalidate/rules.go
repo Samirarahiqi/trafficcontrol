@@ -13,7 +13,11 @@
 package tovalidate
 
 import (
+	"bufio"
+	"os"
 	"strings"
+
+	"github.com/apache/incubator-trafficcontrol/lib/go-log"
 )
 
 // NoSpaces returns true if the string has no spaces
@@ -45,4 +49,43 @@ func IsOneOfStringICase(set ...string) func(string) bool {
 		lowcased = append(lowcased, strings.ToLower(s))
 	}
 	return IsOneOfString(lowcased...)
+}
+
+// IsGoodPassword returns a func that checks given string against a list of bad passwords. Caller should
+// pass in a list of words from the context of the caller (e.g. username and email). The list of common passwords
+// is read from a fixed configuration file.
+func IsGoodPassword(badPasswords ...*string) func(string) bool {
+	return func(newPassword string) bool {
+		if len(newPassword) < 8 {
+			return false
+		}
+		for _, pw := range badPasswords {
+			if pw == nil {
+				continue
+			}
+			if *pw == newPassword {
+				return false
+			}
+		}
+
+		// TODO: we consider that checking new passwords does not happen all that often.
+		// So, we just read this file when needed and do not retain the data.
+		fn := os.Getenv("TO_DIR")
+		if len(fn) == 0 {
+			fn = "/opt/traffic_ops/app"
+		}
+		fn += "/conf/invalid_passwords.txt"
+		f, err := os.Open(fn)
+		if err != nil {
+			log.Errorf("unable to read '%s' to check for invalid passwords", fn)
+		}
+		defer f.Close()
+		scanner := bufio.NewScanner(f)
+		for scanner.Scan() {
+			if newPassword == scanner.Text() {
+				return false
+			}
+		}
+		return true
+	}
 }
