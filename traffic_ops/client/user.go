@@ -17,6 +17,9 @@ package client
 
 import (
 	"encoding/json"
+	"net"
+	"net/http"
+	"strconv"
 
 	"github.com/apache/trafficcontrol/lib/go-tc"
 )
@@ -28,6 +31,7 @@ func (to *Session) Users() ([]tc.User, error) {
 	return us, err
 }
 
+// GetUsers returns all users accessible from current user
 func (to *Session) GetUsers() ([]tc.User, ReqInf, error) {
 	url := apiBase + "/users.json"
 	resp, remoteAddr, err := to.request("GET", url, nil)
@@ -54,4 +58,57 @@ func (to *Session) GetUserCurrent() (*tc.UserCurrent, ReqInf, error) {
 		return nil, reqInf, err
 	}
 	return &resp.Response, reqInf, nil
+}
+
+// CreateUser creates a user
+func (to *Session) CreateUser(user *tc.User) (tc.Alerts, ReqInf, error) {
+	var remoteAddr net.Addr
+	reqBody, err := json.Marshal(user)
+	reqInf := ReqInf{CacheHitStatus: CacheHitStatusMiss, RemoteAddr: remoteAddr}
+	if err != nil {
+		return tc.Alerts{}, reqInf, err
+	}
+	url := apiBase + "/users.json"
+	resp, remoteAddr, err := to.request(http.MethodPost, url, reqBody)
+	if err != nil {
+		return tc.Alerts{}, reqInf, err
+	}
+	defer resp.Body.Close()
+	var alerts tc.Alerts
+	err = json.NewDecoder(resp.Body).Decode(&alerts)
+	return alerts, reqInf, nil
+}
+
+// UpdateUserByID updates user with the given id
+func (to *Session) UpdateUserByID(id int, u tc.User) (tc.Alerts, ReqInf, error) {
+
+	var remoteAddr net.Addr
+	reqBody, err := json.Marshal(u)
+	reqInf := ReqInf{CacheHitStatus: CacheHitStatusMiss, RemoteAddr: remoteAddr}
+	if err != nil {
+		return tc.Alerts{}, reqInf, err
+	}
+	route := apiBase + "/users.json" + strconv.Itoa(id)
+	resp, remoteAddr, err := to.request(http.MethodPut, route, reqBody)
+	if err != nil {
+		return tc.Alerts{}, reqInf, err
+	}
+	defer resp.Body.Close()
+	var alerts tc.Alerts
+	err = json.NewDecoder(resp.Body).Decode(&alerts)
+	return alerts, reqInf, nil
+}
+
+// DeleteUserByID updates user with the given id
+func (to *Session) DeleteUserByID(id int) (tc.Alerts, ReqInf, error) {
+	route := apiBase + "/users.json" + strconv.Itoa(id)
+	resp, remoteAddr, err := to.request(http.MethodDelete, route, nil)
+	reqInf := ReqInf{CacheHitStatus: CacheHitStatusMiss, RemoteAddr: remoteAddr}
+	if err != nil {
+		return tc.Alerts{}, reqInf, err
+	}
+	defer resp.Body.Close()
+	var alerts tc.Alerts
+	err = json.NewDecoder(resp.Body).Decode(&alerts)
+	return alerts, reqInf, nil
 }
