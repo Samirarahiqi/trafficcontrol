@@ -6,9 +6,9 @@
 # to you under the Apache License, Version 2.0 (the
 # "License"); you may not use this file except in compliance
 # with the License.  You may obtain a copy of the License at
-# 
+#
 #   http://www.apache.org/licenses/LICENSE-2.0
-# 
+#
 # Unless required by applicable law or agreed to in writing,
 # software distributed under the License is distributed on an
 # "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
@@ -22,7 +22,7 @@
 #
 # The following environment variables are used to configure the database and traffic ops.  They must be set
 # in ../variables.env for docker-compose to pick up the values:
-# 
+#
 # DB_SERVER
 # DB_PORT
 # DB_USER
@@ -46,12 +46,12 @@ source /to-access.sh
 source /generate-certs.sh
 
 # copy contents of /ca to /export/ssl
-# update the permissions 
+# update the permissions
 mkdir -p "$X509_CA_PERSIST_DIR" && chmod 777 "$X509_CA_PERSIST_DIR"
 chmod -R a+rw "$X509_CA_PERSIST_DIR"
 
 if [ -r "$X509_CA_PERSIST_ENV_FILE" ] ; then
-  umask $X509_CA_UMASK 
+  umask $X509_CA_UMASK
   mkdir -p "$X509_CA_DIR" && chmod 777 $X509_CA_DIR
   rsync -a "$X509_CA_PERSIST_DIR/" "$X509_CA_DIR/"
   sync
@@ -59,7 +59,7 @@ if [ -r "$X509_CA_PERSIST_ENV_FILE" ] ; then
   sleep 4
   source "$X509_CA_ENV_FILE"
 elif x509v3_init; then
-    umask $X509_CA_UMASK 
+    umask $X509_CA_UMASK
 		x509v3_create_cert "$INFRA_SUBDOMAIN" "$INFRA_FQDN"
 		for ds in $DS_HOSTS
 		do
@@ -106,7 +106,7 @@ cd $TO_DIR && \
 	./db/admin.pl --env=production upgrade || echo "db upgrade failed!"
 
 # Add admin user -- all other users should be created using API
-/adduser.pl $TO_ADMIN_USER $TO_ADMIN_PASSWORD admin | psql -U$DB_USER -h$DB_SERVER $DB_NAME || echo "adding traffic_ops admin user failed!"
+/adduser.pl $TO_ADMIN_USER $TO_ADMIN_PASSWORD admin $TO_EMAIL | psql -U$DB_USER -h$DB_SERVER $DB_NAME || echo "adding traffic_ops admin user failed!"
 
 cd $TO_DIR && $TO_DIR/local/bin/hypnotoad script/cdn
 

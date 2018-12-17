@@ -31,16 +31,18 @@ my $username = shift // 'admin';
 my $password = shift or die "Password is required\n";
 my $role = shift // 'admin';
 my $tenant = shift // 'root';
+my $email = shift // 'cdnadmin@example.com';
 
 # Skip the insert if the admin 'username' is already there.
 my $hashed_passwd = hash_pass( $password );
 print <<"EOSQL";
-INSERT INTO tm_user (username, role, local_passwd, confirm_local_passwd, tenant_id)
+INSERT INTO tm_user (username, role, local_passwd, confirm_local_passwd, tenant_id, email)
     VALUES  ('$username',
             (SELECT id FROM role WHERE name = '$role'),
             '$hashed_passwd',
             '$hashed_passwd',
-            (SELECT id FROM tenant WHERE name='$tenant'))
+            (SELECT id FROM tenant WHERE name='$tenant'),
+            '$email')
     ON CONFLICT (username) DO UPDATE SET local_passwd='$hashed_passwd', confirm_local_passwd='$hashed_passwd';
 EOSQL
 
