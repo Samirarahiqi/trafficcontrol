@@ -153,9 +153,23 @@ func main() {
 	}
 
 	go func() {
+		if file, err := os.Open(cfg.CertPath); err != nil {
+			log.Errorf("cannot open %s for read: %s", cfg.CertPath, err.Error())
+			os.Exit(1)
+		} else {
+			file.Close()
+		}
+
+		if file, err := os.Open(cfg.KeyPath); err != nil {
+			log.Errorf("cannot open %s for read: %s", cfg.KeyPath, err.Error())
+			os.Exit(1)
+		} else {
+			file.Close()
+		}
+
 		if err := server.ListenAndServeTLS(cfg.CertPath, cfg.KeyPath); err != nil {
 			log.Errorf("stopping server: %v\n", err)
-			panic(err)
+			os.Exit(1)
 		}
 	}()
 
