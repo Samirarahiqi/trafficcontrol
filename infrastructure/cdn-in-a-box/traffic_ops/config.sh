@@ -42,7 +42,8 @@ do
 	if [[ -z $$v ]]; then echo "$v is unset"; exit 1; fi
 done
 
-until [ -f "$X509_CA_DONE_FILE" ] ; do
+until [[ -f "$X509_CA_ENV_FILE" && ($(stat -c %s  "$X509_CA_ENV_FILE") > 0) ]]
+do
   echo "Waiting on SSL certificate generation."
   sleep 2
 done
@@ -53,7 +54,7 @@ source "$X509_CA_ENV_FILE"
 cp $X509_CA_CERT_FULL_CHAIN_FILE /etc/pki/ca-trust/source/anchors
 update-ca-trust extract
 
-crt="$X509_INFRA_CERT_FILE"
+crt=
 key="$X509_INFRA_KEY_FILE"
 
 echo "crt=$crt"

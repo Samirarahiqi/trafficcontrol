@@ -27,7 +27,7 @@ insert-self-into-dns.sh
 source /to-access.sh
 
 # Wait on SSL certificate generation
-until [ -f "$X509_CA_DONE_FILE" ] 
+until [[ -f "$X509_CA_ENV_FILE" && ($(stat -c %s  "$X509_CA_ENV_FILE") > 0) ]]
 do
      echo "Waiting on Shared SSL certificate generation"
      sleep 3

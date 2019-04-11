@@ -48,7 +48,8 @@ insert-self-into-dns.sh
 # Source to-access functions and FQDN vars
 source /to-access.sh
 
-until [ -f "$X509_CA_DONE_FILE" ] ; do
+until [[ -f "$X509_CA_ENV_FILE" && ($(stat -c %s  "$X509_CA_ENV_FILE") > 0) ]]
+do
    echo "Waiting on SSL certificate generation."
    sleep 2
 done

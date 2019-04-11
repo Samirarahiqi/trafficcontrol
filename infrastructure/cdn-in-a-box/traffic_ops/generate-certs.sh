@@ -72,7 +72,6 @@ x509v3_init()
 
   export X509_CA_CERT_FULL_CHAIN_FILE="$X509_CA_DIR/${X509_CA_NAME}-fullchain.crt"
   export X509_CA_ENV_FILE="$X509_CA_DIR/environment"
-  export X509_CA_DONE_FILE="$X509_CA_DIR/completed"
 
   # If no X509_CA directory exists, create it
   if [ -d "$X509_CA_DIR" ] ; then
@@ -417,6 +416,5 @@ x509v3_dump_env()
   set | grep -E '^X509_' >> "$tmp_file"
   sort "$tmp_file" | uniq | sed 's/^/export /' > "$X509_CA_ENV_FILE"
   sync ; sleep 1
-  touch "$X509_CA_DONE_FILE"
   rm -f "$tmp_file"
 }

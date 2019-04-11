@@ -25,7 +25,7 @@ set +m
 [[ -f "/usr/local/sbin/set-dns.sh" ]] && /usr/local/sbin/set-dns.sh
 [[ -f "/usr/local/sbin/insert-self-into-dns.sh" ]] && /usr/local/sbin/insert-self-into-dns.sh
 
-until [ -f "$X509_CA_DONE_FILE" ] 
+until [[ -f "$X509_CA_ENV_FILE" && ($(stat -c %s  "$X509_CA_ENV_FILE") > 0) ]]
 do
   echo "Waiting on Shared SSL certificate generation"
   sleep 3
