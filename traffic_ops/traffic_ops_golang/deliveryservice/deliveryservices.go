@@ -155,6 +155,10 @@ func create(inf *api.APIInfo, ds tc.DeliveryServiceNullable) (tc.DeliveryService
 		return tc.DeliveryServiceNullable{}, http.StatusInternalServerError, nil, errors.New("creating default regex: " + err.Error())
 	}
 
+	if err := createQueryKeys(tx, *ds.ID, ds.QueryKeys); err != nil {
+		return tc.DeliveryServiceNullable{}, http.StatusInternalServerError, nil, errors.New("creating query keys: " + err.Error())
+	}
+
 	matchlists, err := GetDeliveryServicesMatchLists([]string{*ds.XMLID}, tx)
 	if err != nil {
 		return tc.DeliveryServiceNullable{}, http.StatusInternalServerError, nil, errors.New("creating DS: reading matchlists: " + err.Error())
@@ -250,6 +254,16 @@ func createDefaultRegex(tx *sql.Tx, dsID int, xmlID string) error {
 	if _, err := tx.Exec(`INSERT INTO deliveryservice_regex (deliveryservice, regex, set_number) VALUES ($1::bigint, $2::bigint, 0)`, dsID, regexID); err != nil {
 		return errors.New("executing parameter query to insert location: " + err.Error())
 	}
+	return nil
+}
+
+func createQueryKeys(tx *sql.Tx, dsID int, queryKeys []string) error {
+	for _, k := range queryKeys {
+		if _, err := tx.Exec(`INSERT INTO deliveryservice_querykey (name, deliveryservice_id) VALUES ($1, $2)`, k, dsID); err != nil {
+			return errors.New("insert deliveryservice_querykey: " + err.Error())
+		}
+	}
+
 	return nil
 }
 

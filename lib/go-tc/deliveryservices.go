@@ -74,7 +74,8 @@ type DeleteDeliveryServiceResponse struct {
 
 type DeliveryService struct {
 	DeliveryServiceV13
-	MaxOriginConnections int `json:"maxOriginConnections" db:"max_origin_connections"`
+	MaxOriginConnections int      `json:"maxOriginConnections" db:"max_origin_connections"`
+	QueryKeys            []string `json:"queryKeys"`
 }
 
 type DeliveryServiceV13 struct {
@@ -148,8 +149,9 @@ type DeliveryServiceV11 struct {
 
 type DeliveryServiceNullable struct {
 	DeliveryServiceNullableV13
-	ConsistentHashRegex  *string `json:"consistentHashRegex"`
-	MaxOriginConnections *int    `json:"maxOriginConnections" db:"max_origin_connections"`
+	ConsistentHashRegex  *string  `json:"consistentHashRegex"`
+	MaxOriginConnections *int     `json:"maxOriginConnections" db:"max_origin_connections"`
+	QueryKeys            []string `json:"queryKeys"`
 }
 
 type DeliveryServiceNullableV13 struct {
