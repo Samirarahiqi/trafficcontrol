@@ -65,6 +65,9 @@ func GetTestDeliveryServices(t *testing.T) {
 		if _, ok := actualDSMap[ds.XMLID]; !ok {
 			t.Errorf("GET DeliveryService missing: %v\n", ds.XMLID)
 		}
+		if len(ds.QueryKeys) != 0 {
+			t.Errorf("found a ds with queryKeys: %s", ds.XMLID)
+		}
 	}
 }
 

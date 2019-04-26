@@ -281,6 +281,7 @@
             "profileName": null,
             "protocol": 2,
             "qstringIgnore": 1,
+            "queryKeys": [ "fmt", "resolution" ],
             "rangeRequestHandling": 0,
             "regexRemap": "rr1",
             "regionalGeoBlocking": false,

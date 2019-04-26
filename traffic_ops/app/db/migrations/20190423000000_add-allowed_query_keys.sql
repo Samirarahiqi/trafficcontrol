@@ -17,16 +17,9 @@
 -- SQL in section 'Up' is executed when this migration is applied
 
 -- deliveryservice_querykey
-CREATE TABLE IF NOT EXISTS deliveryservice_querykey (
-    name TEXT NOT NULL,
-    deliveryservice_id bigint NOT NULL,
-    CONSTRAINT fk_deliveryservice FOREIGN KEY (deliveryservice_id) REFERENCES deliveryservice(id) ON DELETE CASCADE,
-    CONSTRAINT name_reserved CHECK (lower(name) NOT IN ('format','trred')),
-    PRIMARY KEY (name, deliveryservice_id),
-    last_updated timestamp with time zone DEFAULT now()
-);
-CREATE TRIGGER on_update_current_timestamp BEFORE UPDATE ON deliveryservice_querykey FOR EACH ROW EXECUTE PROCEDURE on_update_current_timestamp_last_updated();
+ALTER TABLE deliveryservice ADD COLUMN query_keys text[] NOT NULL DEFAULT ARRAY[]::text[];
 
 -- +goose Down
 -- SQL section 'Down' is executed when this migration is rolled back
-DROP TABLE IF EXISTS deliveryservice_querykey;
+ALTER TABLE deliveryservices DROP COLUMN IF EXISTS query_keys;
+
