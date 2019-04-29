@@ -350,6 +350,7 @@
             "profileName": null,
             "protocol": 2,
             "qstringIgnore": 1,
+            "queryKeys": [],
             "rangeRequestHandling": 0,
             "regexRemap": "regexRemap2",
             "regionalGeoBlocking": false,
