@@ -64,6 +64,12 @@ RIAKCONF=/opt/traffic_ops/app/conf/production/riak.conf
 mkdir -p /var/log/traffic_ops
 touch /var/log/traffic_ops/traffic_ops.log
 
+# gets deliveryservice id and name (xmlId) -- one per line suitable for `| while read id name; do...`
+get_dses() {
+  to-get 'api/1.4/deliveryservices' 2>/dev/null | \
+      jq -rc --arg cdnName $CDN_NAME '.response[] | select(.cdnName == $cdnName)|(.id|tosring)+" "+.xmlId'
+}
+
 # enroll in the background so traffic_ops_golang can run in foreground
 TO_USER=$TO_ADMIN_USER TO_PASSWORD=$TO_ADMIN_PASSWORD to-enroll $(hostname -s) &
 
@@ -74,10 +80,20 @@ to-enroll "to" ALL || (while true; do echo "enroll failed."; sleep 3 ; done)
 while true; do
   echo "Verifying that edge was associated to delivery service..."
 
-  edge_name="$(to-get 'api/1.3/servers/hostname/edge/details' 2>/dev/null | jq -r -c '.response|.hostName')"
-  ds_name=$(to-get 'api/1.3/deliveryservices' 2>/dev/null | jq -r -c '.response[] | select(.cdnName == "'"$CDN_NAME"'").xmlId')
-  ds_id=$(to-get 'api/1.3/deliveryservices' 2>/dev/null | jq -r -c '.response[] | select(.cdnName == "'"$CDN_NAME"'").id')
-  edge_verify=$(to-get "/api/1.2/deliveryservices/$ds_id/servers" | jq -r '.response[]|.hostName')
+  # ensure deliveryservices registered
+  if [[ -z $ds_names ]]; then
+      sleep 2
+      continue
+  fi
+
+  get_dses | while read ds_id ds_name; do
+    ds_servers=$(to-get "/api/1.2/deliveryservices/$ds_id/servers" | jq -r '.response[]|.hostName')
+
+    # add ssl keys to servers assigned to a deliveryservice
+    [[ -z $ds_servers ]] && continue
+
+    add_ssl_keys $ds_name $ds_servers
+  done
 
   if [[ $edge_verify = $edge_name ]] ; then
     break
