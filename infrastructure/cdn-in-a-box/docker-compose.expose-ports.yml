@@ -53,9 +53,12 @@ services:
     ports:
       - "8087:8087"
       - "8098:8098"
-  edge:
+  edge1:
     ports:
       - "9000:80"
+  edge2:
+    ports:
+      - "9001:80"
   mid:
     ports:
       - "9100:80"

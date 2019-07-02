@@ -210,7 +210,7 @@ services:
     hostname: trafficvault
 
   # edge cache
-  edge:
+  edge1:
     privileged: True
     build:
       context: ../..
@@ -218,7 +218,23 @@ services:
     domainname: infra.ciab.test
     env_file:
       - variables.env
-    hostname: edge
+    hostname: edge1
+    volumes:
+      - ./dns/set-dns.sh:/usr/local/sbin/set-dns.sh
+      - ./dns/insert-self-into-dns.sh:/usr/local/sbin/insert-self-into-dns.sh
+      - ./edge/run.sh:/opt/init.d/99-run.sh
+      - shared:/shared
+
+  # edge cache
+  edge2:
+    privileged: True
+    build:
+      context: ../..
+      dockerfile: infrastructure/cdn-in-a-box/cache/Dockerfile
+    domainname: infra.ciab.test
+    env_file:
+      - variables.env
+    hostname: edge2
     volumes:
       - ./dns/set-dns.sh:/usr/local/sbin/set-dns.sh
       - ./dns/insert-self-into-dns.sh:/usr/local/sbin/insert-self-into-dns.sh

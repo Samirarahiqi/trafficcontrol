@@ -39,7 +39,7 @@ set -x
 envvars=( DB_SERVER DB_PORT DB_ROOT_PASS DB_USER DB_USER_PASS ADMIN_USER ADMIN_PASS)
 for v in $envvars
 do
-	if [[ -z $$v ]]; then echo "$v is unset"; exit 1; fi
+    if [[ -z $$v ]]; then echo "$v is unset"; exit 1; fi
 done
 
 set-dns.sh
@@ -64,11 +64,6 @@ RIAKCONF=/opt/traffic_ops/app/conf/production/riak.conf
 mkdir -p /var/log/traffic_ops
 touch /var/log/traffic_ops/traffic_ops.log
 
-# gets deliveryservice id and name (xmlId) -- one per line suitable for `| while read id name; do...`
-get_dses() {
-  to-get 'api/1.4/deliveryservices' 2>/dev/null | \
-      jq -rc --arg cdnName $CDN_NAME '.response[] | select(.cdnName == $cdnName)|(.id|tosring)+" "+.xmlId'
-}
 
 # enroll in the background so traffic_ops_golang can run in foreground
 TO_USER=$TO_ADMIN_USER TO_PASSWORD=$TO_ADMIN_PASSWORD to-enroll $(hostname -s) &
@@ -76,31 +71,6 @@ TO_USER=$TO_ADMIN_USER TO_PASSWORD=$TO_ADMIN_PASSWORD to-enroll $(hostname -s) &
 ./bin/traffic_ops_golang -cfg $CDNCONF -dbcfg $DBCONF -riakcfg $RIAKCONF &
 
 to-enroll "to" ALL || (while true; do echo "enroll failed."; sleep 3 ; done)
-
-while true; do
-  echo "Verifying that edge was associated to delivery service..."
-
-  # ensure deliveryservices registered
-  if [[ -z $ds_names ]]; then
-      sleep 2
-      continue
-  fi
-
-  get_dses | while read ds_id ds_name; do
-    ds_servers=$(to-get "/api/1.2/deliveryservices/$ds_id/servers" | jq -r '.response[]|.hostName')
-
-    # add ssl keys to servers assigned to a deliveryservice
-    [[ -z $ds_servers ]] && continue
-
-    add_ssl_keys $ds_name $ds_servers
-  done
-
-  if [[ $edge_verify = $edge_name ]] ; then
-    break
-  fi
-
-  sleep 2
-done
 
 ### Add SSL keys for demo1 delivery service
 to-add-sslkeys $CDN_NAME $ds_name "*.demo1.mycdn.ciab.test" $X509_DEMO1_CERT_FILE $X509_DEMO1_REQUEST_FILE $X509_DEMO1_KEY_FILE

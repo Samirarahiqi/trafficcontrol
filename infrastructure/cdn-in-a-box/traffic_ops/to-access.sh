@@ -265,7 +265,7 @@ to-enroll() {
 
 # Tests that this server exists in Traffic Ops
 function testenrolled() {
-	local tmp="$(to-get	'api/1.3/servers?name='$MY_HOSTNAME'')"
+	local tmp="$(to-get	'api/1.4/servers?name='$MY_HOSTNAME'')"
 	tmp=$(echo $tmp | jq '.response[]|select(.hostName=="'"$MY_HOSTNAME"'")')
 	echo "$tmp"
 }

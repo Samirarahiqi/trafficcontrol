@@ -33,7 +33,7 @@
 # TODO:  Unused -- should be removed?  TRAFFIC_VAULT_PASS
 
 # Check that env vars are set
-envvars=( DB_SERVER DB_PORT DB_USER DB_USER_PASS ADMIN_USER ADMIN_PASS X509_CA_DIR TLD_DOMAIN INFRA_SUBDOMAIN CDN_SUBDOMAIN DS_HOSTS)
+envvars=( DB_SERVER DB_PORT DB_USER DB_USER_PASS ADMIN_USER ADMIN_PASS X509_CA_DIR TLD_DOMAIN INFRA_SUBDOMAIN CDN_SUBDOMAIN )
 for v in $envvars
 do
 	if [[ -z $$v ]]; then echo "$v is unset"; exit 1; fi
@@ -53,9 +53,6 @@ source /generate-certs.sh
 if x509v3_init; then
     umask $X509_CA_UMASK 
     x509v3_create_cert "$INFRA_SUBDOMAIN" "$INFRA_FQDN"
-    for ds in $DS_HOSTS; do
-        x509v3_create_cert "$ds" "$ds.$CDN_FQDN"
-    done
     x509v3_dump_env
     sync
     sleep 4
@@ -74,8 +71,8 @@ if [[ ! -x $pg_isready ]] ; then
 fi
 
 while ! $pg_isready -h$DB_SERVER -p$DB_PORT -d $DB_NAME; do
-        echo "waiting for db on $DB_SERVER $DB_PORT"
-        sleep 3
+    echo "waiting for db on $DB_SERVER $DB_PORT"
+    sleep 3
 done
 
 export TO_DIR=/opt/traffic_ops/app
@@ -106,5 +103,35 @@ export TO_USER=$TO_ADMIN_USER
 export TO_PASSWORD=$TO_ADMIN_PASSWORD
 
 to-enroll "to" ALL || (while true; do echo "enroll failed."; sleep 3 ; done)
+
+
+# gets deliveryservice id and name (xmlId) -- one per line suitable for `| while read id name; do...`
+get_deliveryservices() {
+    to-get 'api/1.4/deliveryservices' | \
+      jq -rc --arg cdnName $CDN_NAME '.response[] | select(.cdnName == $cdnName)|(.id|tostring)+"\t"+.xmlId'
+}
+
+# gets edge id and fqdn -- one per line suitable for `| while read id name; do...`
+get_edges() {
+    to-get 'api/1.4/servers?type=EDGE' | \
+        jq -rc '.response[] | (.id|tostring)+"\t"+.hostName'
+}
+
+edge_names=( $(get_edges | awk '{print $2}') )
+n=${#edge_names[*]}
+
+get_deliveryservices | while read id name; do
+    # randomly assign some edges to each ds
+    s=()
+    for i in $(seq 5); do
+        s+=( ${edge_names[ $[ $RANDOM % $n ] ]} )
+    done
+    echo "s is ${s[*]}"
+    addservers=$(echo ${s[*]} | tr ' ' "\n" | jq -ncR '[inputs | select(length>0)]')
+    to-post api/1.4/deliveryservices/$name/servers "$addservers"
+
+    # generate ssl keys for each delivery service
+    x509v3_create_cert "$name" "$name.$CDN_FQDN"
+done
 
 exec tail -f /var/log/traffic_ops/traffic_ops.log
